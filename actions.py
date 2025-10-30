@@ -25,9 +25,11 @@ class PatientInfo(BaseModel):
     age: int
     email: EmailStr
 
+
 class SlotRequest(BaseModel):
     speciality: str
     doctor: str
+
 
 class AppointmentConfirm(BaseModel):
     name: str
@@ -36,12 +38,12 @@ class AppointmentConfirm(BaseModel):
     time: str
     amount: float
 
+
 # ----------------------------------------------------
 # 1️⃣ Validate Patient
 # ----------------------------------------------------
 @app.post("/validate-patient/")
 def validate_patient(data: PatientInfo):
-    # Search for existing patient
     for patient in patients:
         if (
             patient["name"].lower() == data.name.lower()
@@ -58,12 +60,12 @@ def validate_patient(data: PatientInfo):
         "message": "Patient not found. Please register first."
     }
 
+
 # ----------------------------------------------------
 # 2️⃣ Register Patient
 # ----------------------------------------------------
 @app.post("/register-patient/")
 def register_patient(data: PatientInfo):
-    # Prevent duplicate registration
     for patient in patients:
         if (
             patient["name"].lower() == data.name.lower()
@@ -85,11 +87,10 @@ def register_patient(data: PatientInfo):
         "message": f"Patient {data.name} registered successfully ✅"
     }
 
-# ----------------------------------------------------
-# 3️⃣ Get Available Slots (Random)
-# ----------------------------------------------------
 @app.post("/get-available-slots/")
 def get_slots(data: SlotRequest):
+    print("🔥 Using NEW slot format function!")  # <-- Debug confirmation
+
     if data.speciality not in specialities:
         return {"status": "error", "message": "Invalid speciality"}
     if data.doctor not in specialities[data.speciality]:
@@ -97,19 +98,21 @@ def get_slots(data: SlotRequest):
 
     today = datetime.now()
     slots = []
+
     for _ in range(3):
         days_ahead = random.randint(1, 7)
         hour = random.choice([9, 10, 11, 14, 15, 16])
-        slot_date = (today + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
+        slot_date = (today + timedelta(days=days_ahead)).strftime("%d/%m/%Y")
         slot_time = f"{hour}:00"
+        slots.append(f"{slot_date} {slot_time}")
 
-        slots.append({"date": slot_date, "time": slot_time})
+    formatted_slots = ", ".join(slots)
 
     return {
         "status": "success",
         "doctor": data.doctor,
         "speciality": data.speciality,
-        "available_slots": slots
+        "available_slots": formatted_slots
     }
 
 # ----------------------------------------------------
@@ -117,7 +120,6 @@ def get_slots(data: SlotRequest):
 # ----------------------------------------------------
 @app.post("/confirm-appointment/")
 def confirm_appointment(data: AppointmentConfirm):
-    # Check duplicate slot
     for booking in booked_appointments:
         if (
             booking["name"].lower() == data.name.lower()
@@ -130,12 +132,11 @@ def confirm_appointment(data: AppointmentConfirm):
                 "message": "This slot is already booked for the same patient and doctor ❌"
             }
 
-    # Confirm payment and appointment
     if data.amount <= 0:
         return {"status": "error", "message": "Invalid payment amount"}
 
-    confirmation_id = f"APT-{random.randint(10000,99999)}"
-    payment_id = f"PAY-{random.randint(10000,99999)}"
+    confirmation_id = f"APT-{random.randint(10000, 99999)}"
+    payment_id = f"PAY-{random.randint(10000, 99999)}"
 
     appointment = {
         "appointment_id": confirmation_id,
@@ -152,6 +153,6 @@ def confirm_appointment(data: AppointmentConfirm):
 
     return {
         "status": "success",
-        "message": "Appointment and payment confirmed successfully ✅",
+        "appointment_confirmation_message": "Appointment and payment confirmed successfully ✅",
         "appointment_confirmation": appointment
     }
