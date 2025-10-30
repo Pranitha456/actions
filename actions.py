@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime, timedelta
 import random
 
-app = FastAPI(title="Clinic Appointment API", version="3.0.0")
+app = FastAPI(title="Clinic Appointment API", version="3.1.0")
 
 # ----------------------------------------------------
 # Mock Data Stores
@@ -16,6 +16,7 @@ specialities = {
 
 patients = []  # store patient registrations
 booked_appointments = []  # store confirmed bookings
+
 
 # ----------------------------------------------------
 # Models
@@ -87,10 +88,12 @@ def register_patient(data: PatientInfo):
         "message": f"Patient {data.name} registered successfully ✅"
     }
 
+
+# ----------------------------------------------------
+# 3️⃣ Get Available Slots (flat list in one key)
+# ----------------------------------------------------
 @app.post("/get-available-slots/")
 def get_slots(data: SlotRequest):
-    print("🔥 Using NEW slot format function!")  # <-- Debug confirmation
-
     if data.speciality not in specialities:
         return {"status": "error", "message": "Invalid speciality"}
     if data.doctor not in specialities[data.speciality]:
@@ -102,18 +105,17 @@ def get_slots(data: SlotRequest):
     for _ in range(3):
         days_ahead = random.randint(1, 7)
         hour = random.choice([9, 10, 11, 14, 15, 16])
-        slot_date = (today + timedelta(days=days_ahead)).strftime("%d/%m/%Y")
+        slot_date = (today + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
         slot_time = f"{hour}:00"
-        slots.append(f"{slot_date} {slot_time}")
-
-    formatted_slots = ", ".join(slots)
+        slots.append({"date": slot_date, "time": slot_time})
 
     return {
         "status": "success",
         "doctor": data.doctor,
         "speciality": data.speciality,
-        "available_slots": formatted_slots
+        "available_dates": slots
     }
+
 
 # ----------------------------------------------------
 # 4️⃣ Confirm Appointment & Prevent Duplicate
@@ -146,13 +148,14 @@ def confirm_appointment(data: AppointmentConfirm):
         "time": data.time,
         "amount": data.amount,
         "payment_id": payment_id,
-        "status": "confirmed"
+        "confirmation_status": "confirmed"
     }
 
     booked_appointments.append(appointment)
 
+    # ✅ Flattened response (no nested JSON)
     return {
         "status": "success",
         "appointment_confirmation_message": "Appointment and payment confirmed successfully ✅",
-        "appointment_confirmation": appointment
+        **appointment  # expands all key-value pairs directly into the main response
     }
