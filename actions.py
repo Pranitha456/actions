@@ -90,7 +90,7 @@ def register_patient(data: PatientInfo):
 
 
 # ----------------------------------------------------
-# 3️⃣ Get Available Slots (flat list in one key)
+# 3️⃣ Get Available Slots (flat string with date-time pairs)
 # ----------------------------------------------------
 @app.post("/get-available-slots/")
 def get_slots(data: SlotRequest):
@@ -102,18 +102,18 @@ def get_slots(data: SlotRequest):
     today = datetime.now()
     slots = []
 
-    for _ in range(3):
-        days_ahead = random.randint(1, 7)
-        hour = random.choice([9, 10, 11, 14, 15, 16])
-        slot_date = (today + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
-        slot_time = f"{hour}:00"
-        slots.append({"date": slot_date, "time": slot_time})
+    for _ in range(3):  # generate 3 random slots
+        days_ahead = random.randint(1, 10)  # random within 10 days
+        hour = random.choice([9, 10, 11, 14, 15, 16, 17, 18, 19])
+        minute = random.choice(["00", "30"])  # randomize 00 or 30 minutes
+        slot_datetime = (today + timedelta(days=days_ahead)).strftime(f"%Y-%m-%d {hour}:{minute}")
+        slots.append(slot_datetime)
 
     return {
         "status": "success",
         "doctor": data.doctor,
         "speciality": data.speciality,
-        "available_dates": slots
+        "available_dates": ", ".join(slots)
     }
 
 
