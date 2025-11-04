@@ -169,14 +169,15 @@ async def confirm_appointment(request: Request):
         doctor = data.get("doctor", "").strip()
         date = data.get("date", "").strip()
         time = data.get("time", "").strip()
-        amount = data.get("amount", 0.0)
+        amount = data.get("amount", "").strip()  # <-- STRING now
 
         # Validate input
         if not name or not doctor or not date or not time or not amount:
             return {"status": "error", "message": "Missing appointment details."}
 
-        if amount <= 0:
-            return {"status": "error", "message": "Invalid payment amount."}
+        # Amount should be numeric characters only (optional)
+        if not amount.replace(".", "", 1).isdigit(): 
+            return {"status": "error", "message": "Invalid payment amount format."}
 
         # Check duplicate booking
         for booking in booked_appointments:
@@ -200,7 +201,7 @@ async def confirm_appointment(request: Request):
             "doctor": doctor,
             "date": date,
             "time": time,
-            "amount": amount,
+            "amount": amount,  # <-- stored as string
             "payment_id": payment_id,
             "confirmation_status": "confirmed"
         }
@@ -215,3 +216,4 @@ async def confirm_appointment(request: Request):
 
     except Exception:
         return {"status": "error", "message": "Invalid request format."}
+
