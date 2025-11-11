@@ -1,49 +1,27 @@
-# ====================================================
-# initialise_process.py
-# ----------------------------------------------------
-# This file handles initialisation logic for the
-# Doctor Appointment API — currently focused on
-# global patient data setup. Ready for Render deploy.
-# ====================================================
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-import logging
+app = FastAPI()
 
-def initialise_patient_data():
-    """
-    Initializes patient-related global data.
-    This function runs once at startup and can be
-    extended later to load data from a database or API.
-    """
+# Initialize patients data (global)
+patients = [
+    {"name": "John Doe", "age": 30, "email": "john.doe@example.com"},
+    {"name": "Jane Smith", "age": 27, "email": "jane.smith@example.com"}
+]
 
-    # Setup logging (optional for Render logs)
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger("InitialiseProcess")
+# Pydantic model to validate incoming patient data
+class Patient(BaseModel):
+    name: str
+    age: int
+    email: str
 
-    # You can pre-load mock or test patients here
-    patients = [
-        {
-            "name": "John Doe",
-            "age": 30,
-            "email": "john.doe@example.com"
-        },
-        {
-            "name": "Jane Smith",
-            "age": 27,
-            "email": "jane.smith@example.com"
-        }
-    ]
-
-    logger.info(f"🧑‍⚕️ Initialised {len(patients)} patients globally.")
-
-    # Return the initialised data
+# GET endpoint to list all patients
+@app.get("/patients")
+async def get_patients():
     return patients
 
-
-# ----------------------------------------------------
-# Optional: You can test this file directly
-# ----------------------------------------------------
-if __name__ == "__main__":
-    data = initialise_patient_data()
-    print("✅ Initialised Patient Data:")
-    for p in data:
-        print(f" - {p['name']} ({p['age']}) - {p['email']}")
+# POST endpoint to add a new patient
+@app.post("/patients")
+async def add_patient(patient: Patient):
+    patients.append(patient.dict())
+    return {"message": "Patient added successfully", "total_patients": len(patients)}
