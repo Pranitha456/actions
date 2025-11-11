@@ -1,0 +1,49 @@
+# ====================================================
+# initialise_process.py
+# ----------------------------------------------------
+# This file handles initialisation logic for the
+# Doctor Appointment API — currently focused on
+# global patient data setup. Ready for Render deploy.
+# ====================================================
+
+import logging
+
+def initialise_patient_data():
+    """
+    Initializes patient-related global data.
+    This function runs once at startup and can be
+    extended later to load data from a database or API.
+    """
+
+    # Setup logging (optional for Render logs)
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("InitialiseProcess")
+
+    # You can pre-load mock or test patients here
+    patients = [
+        {
+            "name": "John Doe",
+            "age": 30,
+            "email": "john.doe@example.com"
+        },
+        {
+            "name": "Jane Smith",
+            "age": 27,
+            "email": "jane.smith@example.com"
+        }
+    ]
+
+    logger.info(f"🧑‍⚕️ Initialised {len(patients)} patients globally.")
+
+    # Return the initialised data
+    return patients
+
+
+# ----------------------------------------------------
+# Optional: You can test this file directly
+# ----------------------------------------------------
+if __name__ == "__main__":
+    data = initialise_patient_data()
+    print("✅ Initialised Patient Data:")
+    for p in data:
+        print(f" - {p['name']} ({p['age']}) - {p['email']}")
